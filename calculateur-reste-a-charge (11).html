@@ -1,0 +1,2647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCost Pro - Calculateur de Reste à Charge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a5f7a;
+            --primary-light: #2c7a9b;
+            --primary-dark: #0d3d52;
+            --accent: #e8a87c;
+            --accent-light: #f4c5a0;
+            --success: #52b788;
+            --error: #d64545;
+            --text-dark: #2d3748;
+            --text-medium: #4a5568;
+            --text-light: #718096;
+            --bg-main: #f8f9fb;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --shadow: rgba(26, 95, 122, 0.08);
+            --shadow-md: rgba(26, 95, 122, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f8f9fb 0%, #e8eef3 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            font-weight: 400;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .header-info {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 25px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .step-line-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            margin-bottom: 0.75rem;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-color: var(--primary);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px var(--shadow-md);
+        }
+
+        .step.completed .step-number {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+            text-align: center;
+            max-width: 120px;
+        }
+
+        .step.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px var(--shadow);
+            margin-bottom: 2rem;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .step-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .step-subtitle {
+            color: var(--text-medium);
+            margin-bottom: 2.5rem;
+            font-size: 1.05rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Lato', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--bg-main);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(26, 95, 122, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Radio Cards */
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .radio-card {
+            position: relative;
+        }
+
+        .radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-card label {
+            display: block;
+            padding: 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-main);
+            text-align: center;
+        }
+
+        .radio-card input[type="radio"]:checked + label {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(26, 95, 122, 0.05) 0%, rgba(232, 168, 124, 0.05) 100%);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .radio-card label:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .radio-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .radio-description {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Intervention Search */
+        .intervention-search {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-main);
+        }
+
+        .result-code {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .result-name {
+            color: var(--text-dark);
+            margin-top: 0.25rem;
+        }
+
+        .result-price {
+            color: var(--text-medium);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Selected Intervention */
+        .selected-intervention {
+            display: none;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(82, 183, 136, 0.1) 0%, rgba(82, 183, 136, 0.05) 100%);
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+
+        .selected-intervention.active {
+            display: block;
+        }
+
+        .selected-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .selected-info h4 {
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .selected-code {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--success);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .selected-details {
+            color: var(--text-medium);
+            font-size: 0.95rem;
+        }
+
+        .remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        /* Intervention Card */
+        .intervention-card {
+            background: linear-gradient(135deg, rgba(82, 183, 136, 0.1) 0%, rgba(82, 183, 136, 0.05) 100%);
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: start;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .intervention-details {
+            flex: 1;
+        }
+
+        .intervention-code {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--success);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .intervention-name {
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .intervention-description {
+            color: var(--text-medium);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .intervention-pricing {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.75rem;
+        }
+
+        .pricing-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pricing-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .pricing-value {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .intervention-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .btn-edit {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .btn-remove {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #c23030;
+            transform: translateY(-1px);
+        }
+
+        .fees-input-inline {
+            margin-top: 0.5rem;
+            width: 150px;
+        }
+
+        .fees-input-inline input {
+            padding: 0.5rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        #emptyState {
+            display: block;
+        }
+
+        .has-interventions #emptyState {
+            display: none;
+        }
+
+        /* Speciality filter */
+        .speciality-hidden {
+            display: none !important;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--bg-main) 0%, white 100%);
+            padding: 1.75rem;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: var(--text-medium);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        /* Result Summary */
+        .result-summary {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .result-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .result-breakdown {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .breakdown-label {
+            font-size: 1.05rem;
+            opacity: 0.95;
+        }
+
+        .breakdown-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .breakdown-total {
+            background: rgba(232, 168, 124, 0.3);
+            border: 2px solid var(--accent);
+        }
+
+        .breakdown-total .breakdown-label {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .breakdown-total .breakdown-value {
+            font-size: 2rem;
+            color: var(--accent-light);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: 0 4px 16px var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-main);
+            color: var(--text-dark);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-action {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-action:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(232, 168, 124, 0.1) 0%, rgba(232, 168, 124, 0.05) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box-text {
+            color: var(--text-medium);
+            font-size: 0.95rem;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+                margin: 1.5rem auto;
+            }
+
+            .form-card {
+                padding: 1.5rem 1rem;
+                border-radius: 16px;
+            }
+
+            .step-title {
+                font-size: 1.4rem;
+            }
+
+            .step-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            .header-info {
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .user-badge {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 0.9rem 1.5rem;
+            }
+
+            .steps-indicator {
+                overflow-x: auto;
+                padding-bottom: 1rem;
+                gap: 0.5rem;
+            }
+
+            .step {
+                min-width: 80px;
+            }
+
+            .step-number {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+
+            .step-label {
+                font-size: 0.7rem;
+                max-width: 80px;
+            }
+
+            .result-title {
+                font-size: 1.6rem;
+            }
+
+            .progress-wrapper {
+                padding: 1.5rem 1rem;
+            }
+
+            /* Radio group responsive */
+            .radio-group {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+                gap: 0.75rem;
+                max-height: 400px;
+                padding: 0.75rem;
+            }
+
+            .radio-card label {
+                padding: 1rem;
+            }
+
+            .radio-icon {
+                font-size: 1.5rem;
+            }
+
+            .radio-title {
+                font-size: 0.85rem;
+            }
+
+            /* Form elements */
+            .form-input,
+            .form-select {
+                padding: 0.85rem 1rem;
+                font-size: 0.95rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            /* Intervention cards mobile */
+            .intervention-card {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .intervention-actions {
+                flex-direction: row;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .btn-small {
+                flex: 1;
+                padding: 0.6rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .intervention-pricing {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .pricing-item {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .pricing-label {
+                font-size: 0.75rem;
+            }
+
+            .pricing-value {
+                font-size: 1rem;
+            }
+
+            /* Summary cards */
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .summary-card {
+                padding: 1.25rem;
+            }
+
+            .result-summary {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .result-breakdown {
+                gap: 1rem;
+            }
+
+            .breakdown-item {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .breakdown-label {
+                font-size: 0.9rem;
+            }
+
+            .breakdown-value {
+                font-size: 1.1rem;
+            }
+
+            .breakdown-total .breakdown-value {
+                font-size: 1.6rem;
+            }
+
+            /* Search results mobile */
+            .search-results {
+                max-height: 250px;
+            }
+
+            .search-result-item {
+                padding: 0.85rem 1rem;
+            }
+
+            .result-code {
+                font-size: 0.85rem;
+            }
+
+            .result-name {
+                font-size: 0.9rem;
+            }
+
+            /* Info box mobile */
+            .info-box {
+                padding: 1rem;
+            }
+
+            .info-box-title {
+                font-size: 0.95rem;
+            }
+
+            .info-box-text {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.75rem;
+                margin: 1rem auto;
+            }
+
+            .form-card {
+                padding: 1.25rem 0.85rem;
+            }
+
+            .step-title {
+                font-size: 1.25rem;
+            }
+
+            .step-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .radio-group {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.5rem;
+                padding: 0.5rem;
+            }
+
+            .radio-card label {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .radio-icon {
+                font-size: 1.3rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .radio-title {
+                font-size: 0.75rem;
+            }
+
+            .step-number {
+                width: 32px;
+                height: 32px;
+                font-size: 0.85rem;
+            }
+
+            .step-label {
+                font-size: 0.65rem;
+            }
+
+            .intervention-name {
+                font-size: 0.95rem;
+            }
+
+            .intervention-code {
+                font-size: 0.75rem;
+                padding: 0.2rem 0.6rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .header, .button-group, .progress-wrapper {
+                display: none;
+            }
+
+            .form-card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">MediCost <span>Pro</span></div>
+            <div class="header-info">
+                <div class="user-badge">
+                    <div class="user-avatar">DM</div>
+                    <span>Dr. Martin - Chirurgien</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-wrapper">
+            <div class="steps-indicator">
+                <div class="step-line">
+                    <div class="step-line-progress" id="progressLine"></div>
+                </div>
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Type de praticien</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Intervention</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Patient & Mutuelle</div>
+                </div>
+                <div class="step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Récapitulatif</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <!-- Step 1: Type de praticien -->
+            <div class="form-step active" id="step1">
+                <h2 class="step-title">Votre spécialité médicale</h2>
+                <p class="step-subtitle">Sélectionnez votre domaine d'activité pour accéder aux interventions correspondantes</p>
+                
+                <div class="form-group">
+                    <label class="form-label">🔍 Rechercher une spécialité</label>
+                    <input type="text" class="form-input" id="specialitySearch" placeholder="Ex: cardiologue, dentiste, kinésithérapeute...">
+                </div>
+
+                <div class="radio-group" id="specialitiesContainer" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); max-height: 500px; overflow-y: auto; padding: 1rem; border: 1px solid var(--border); border-radius: 12px;">
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="medecin" value="medecin">
+                        <label for="medecin">
+                            <div class="radio-icon">🩺</div>
+                            <div class="radio-title">Médecin généraliste</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="chirurgien" value="chirurgien">
+                        <label for="chirurgien">
+                            <div class="radio-icon">⚕️</div>
+                            <div class="radio-title">Chirurgien</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="dermato" value="dermato">
+                        <label for="dermato">
+                            <div class="radio-icon">🔬</div>
+                            <div class="radio-title">Dermatologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="dentiste" value="dentiste">
+                        <label for="dentiste">
+                            <div class="radio-icon">🦷</div>
+                            <div class="radio-title">Dentiste</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="cardiologue" value="cardiologue">
+                        <label for="cardiologue">
+                            <div class="radio-icon">❤️</div>
+                            <div class="radio-title">Cardiologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="ophtalmologue" value="ophtalmologue">
+                        <label for="ophtalmologue">
+                            <div class="radio-icon">👁️</div>
+                            <div class="radio-title">Ophtalmologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="orl" value="orl">
+                        <label for="orl">
+                            <div class="radio-icon">👂</div>
+                            <div class="radio-title">ORL</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="gynecologue" value="gynecologue">
+                        <label for="gynecologue">
+                            <div class="radio-icon">👶</div>
+                            <div class="radio-title">Gynécologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="pediatre" value="pediatre">
+                        <label for="pediatre">
+                            <div class="radio-icon">🧒</div>
+                            <div class="radio-title">Pédiatre</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="radiologue" value="radiologue">
+                        <label for="radiologue">
+                            <div class="radio-icon">📡</div>
+                            <div class="radio-title">Radiologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="anesthesiste" value="anesthesiste">
+                        <label for="anesthesiste">
+                            <div class="radio-icon">💉</div>
+                            <div class="radio-title">Anesthésiste</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="psychiatre" value="psychiatre">
+                        <label for="psychiatre">
+                            <div class="radio-icon">🧠</div>
+                            <div class="radio-title">Psychiatre</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="pneumologue" value="pneumologue">
+                        <label for="pneumologue">
+                            <div class="radio-icon">🫁</div>
+                            <div class="radio-title">Pneumologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="gastro" value="gastro">
+                        <label for="gastro">
+                            <div class="radio-icon">🏥</div>
+                            <div class="radio-title">Gastro-entérologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="endocrinologue" value="endocrinologue">
+                        <label for="endocrinologue">
+                            <div class="radio-icon">⚗️</div>
+                            <div class="radio-title">Endocrinologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="nephrologue" value="nephrologue">
+                        <label for="nephrologue">
+                            <div class="radio-icon">🩺</div>
+                            <div class="radio-title">Néphrologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="urologue" value="urologue">
+                        <label for="urologue">
+                            <div class="radio-icon">🔬</div>
+                            <div class="radio-title">Urologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="rhumatologue" value="rhumatologue">
+                        <label for="rhumatologue">
+                            <div class="radio-icon">🦴</div>
+                            <div class="radio-title">Rhumatologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="neurologue" value="neurologue">
+                        <label for="neurologue">
+                            <div class="radio-icon">🧠</div>
+                            <div class="radio-title">Neurologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="oncologue" value="oncologue">
+                        <label for="oncologue">
+                            <div class="radio-icon">🎗️</div>
+                            <div class="radio-title">Oncologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="allergologue" value="allergologue">
+                        <label for="allergologue">
+                            <div class="radio-icon">🤧</div>
+                            <div class="radio-title">Allergologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="hematologue" value="hematologue">
+                        <label for="hematologue">
+                            <div class="radio-icon">🩸</div>
+                            <div class="radio-title">Hématologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="orthopediste" value="orthopediste">
+                        <label for="orthopediste">
+                            <div class="radio-icon">🦵</div>
+                            <div class="radio-title">Orthopédiste</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="kinesitherapeute" value="kinesitherapeute">
+                        <label for="kinesitherapeute">
+                            <div class="radio-icon">💪</div>
+                            <div class="radio-title">Kinésithérapeute</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="osteopathe" value="osteopathe">
+                        <label for="osteopathe">
+                            <div class="radio-icon">🙌</div>
+                            <div class="radio-title">Ostéopathe</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="sage-femme" value="sage-femme">
+                        <label for="sage-femme">
+                            <div class="radio-icon">🤱</div>
+                            <div class="radio-title">Sage-femme</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="podologue" value="podologue">
+                        <label for="podologue">
+                            <div class="radio-icon">🦶</div>
+                            <div class="radio-title">Podologue</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="orthophoniste" value="orthophoniste">
+                        <label for="orthophoniste">
+                            <div class="radio-icon">🗣️</div>
+                            <div class="radio-title">Orthophoniste</div>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="speciality" id="dieteticien" value="dieteticien">
+                        <label for="dieteticien">
+                            <div class="radio-icon">🥗</div>
+                            <div class="radio-title">Diététicien</div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="noSpecialityFound" style="display: none; padding: 2rem; text-align: center; color: var(--text-light); margin-top: 1rem;">
+                    Aucune spécialité trouvée. Essayez un autre terme de recherche.
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" disabled>Précédent</button>
+                    <button class="btn btn-primary" id="nextStep1">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Intervention -->
+            <div class="form-step" id="step2">
+                <h2 class="step-title">Sélection des interventions</h2>
+                <p class="step-subtitle">Recherchez et ajoutez une ou plusieurs interventions à réaliser</p>
+
+                <div class="form-group intervention-search">
+                    <label class="form-label">Rechercher une intervention (code CCAM ou nom)</label>
+                    <input type="text" class="form-input" id="interventionSearch" placeholder="Ex: YYYY001 ou Consultation de suivi">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+
+                <!-- Formulaire d'ajout d'intervention -->
+                <div id="addInterventionForm" style="display: none; margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(26, 95, 122, 0.05) 0%, rgba(232, 168, 124, 0.05) 100%); border: 2px solid var(--primary); border-radius: 12px;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.1rem;">Ajouter l'intervention</h4>
+                    <div id="selectedInterventionInfo" style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px;">
+                        <!-- Info intervention -->
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Honoraires pratiqués (€)</label>
+                        <input type="number" class="form-input" id="interventionFees" placeholder="Ex: 150.00" step="0.01">
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-secondary" id="cancelAddIntervention" style="flex: 1;">Annuler</button>
+                        <button class="btn btn-primary" id="confirmAddIntervention" style="flex: 1;">Ajouter</button>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">💡 Astuce</div>
+                    <div class="info-box-text">Vous pouvez ajouter plusieurs interventions pour un même patient (ex: détartrage + implant dentaire). Notre base contient plus de 10 000 actes référencés.</div>
+                </div>
+
+                <!-- Liste des interventions sélectionnées -->
+                <div id="interventionsList" style="margin-top: 2rem;">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.2rem; font-weight: 600;">Interventions sélectionnées</h3>
+                    <div id="selectedInterventions" style="display: grid; gap: 1rem;">
+                        <!-- Les interventions seront ajoutées ici dynamiquement -->
+                    </div>
+                    <div id="emptyState" style="padding: 2rem; text-align: center; color: var(--text-light); border: 2px dashed var(--border); border-radius: 12px;">
+                        Aucune intervention sélectionnée. Utilisez la recherche ci-dessus pour ajouter des interventions.
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevStep2">Précédent</button>
+                    <button class="btn btn-primary" id="nextStep2">Continuer</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Patient & Mutuelle -->
+            <div class="form-step" id="step3">
+                <h2 class="step-title">Informations patient</h2>
+                <p class="step-subtitle">Renseignez les informations nécessaires au calcul du reste à charge</p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom du patient</label>
+                        <input type="text" class="form-input" id="patientName" placeholder="Nom et prénom">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Numéro de sécurité sociale</label>
+                        <input type="text" class="form-input" id="socialSecurity" placeholder="1 XX XX XX XXX XXX XX">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Régime de sécurité sociale</label>
+                    <select class="form-select" id="regime">
+                        <option value="">Sélectionnez un régime</option>
+                        <option value="general">Régime général (70%)</option>
+                        <option value="alsace">Alsace-Moselle (90%)</option>
+                        <option value="mutualite">Mutualité sociale agricole (70%)</option>
+                        <option value="independant">Travailleurs indépendants (70%)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mutuelle complémentaire</label>
+                    <div style="position: relative;">
+                        <input type="text" class="form-input" id="mutuelleSearch" placeholder="Rechercher et sélectionner une mutuelle..." autocomplete="off">
+                        <div id="mutuelleDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid var(--primary); border-top: none; border-radius: 0 0 12px 12px; max-height: 300px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 24px var(--shadow);">
+                            <!-- Les options de mutuelles seront ajoutées ici -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="mutuelleValue" value="">
+                    <div id="selectedMutuelleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem 1rem; background: linear-gradient(135deg, rgba(26, 95, 122, 0.1) 0%, rgba(232, 168, 124, 0.05) 100%); border-radius: 8px; color: var(--primary-dark); font-weight: 600;">
+                        <!-- La mutuelle sélectionnée s'affichera ici -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Taux de remboursement mutuelle (%)</label>
+                    <input type="number" class="form-input" id="mutuelleRate" placeholder="Ex: 100" min="0" max="100">
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">ℹ️ Information</div>
+                    <div class="info-box-text">Le taux de remboursement de la mutuelle s'applique sur le ticket modérateur (part non remboursée par la Sécurité Sociale).</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevStep3">Précédent</button>
+                    <button class="btn btn-primary" id="nextStep3">Calculer</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Récapitulatif -->
+            <div class="form-step" id="step4">
+                <h2 class="step-title">Résultat du calcul</h2>
+                <p class="step-subtitle">Détail complet des remboursements et reste à charge</p>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-label">Patient</div>
+                        <div class="summary-value" id="summaryPatient">-</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Intervention</div>
+                        <div class="summary-value" id="summaryIntervention">-</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Honoraires</div>
+                        <div class="summary-value" id="summaryFees">-</div>
+                    </div>
+                </div>
+
+                <div class="result-summary">
+                    <h3 class="result-title">Détail des remboursements</h3>
+                    <div class="result-breakdown">
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Tarif de base (Sécurité Sociale)</span>
+                            <span class="breakdown-value" id="baseTarif">0,00 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Remboursement Sécurité Sociale</span>
+                            <span class="breakdown-value" id="secuRemboursement">0,00 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Remboursement Mutuelle</span>
+                            <span class="breakdown-value" id="mutuelleRemboursement">0,00 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Dépassement d'honoraires</span>
+                            <span class="breakdown-value" id="depassement">0,00 €</span>
+                        </div>
+                        <div class="breakdown-item breakdown-total">
+                            <span class="breakdown-label">Reste à charge patient</span>
+                            <span class="breakdown-value" id="resteACharge">0,00 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="prevStep4">Précédent</button>
+                    <button class="btn btn-action" id="generateQuote">Générer le devis</button>
+                    <button class="btn btn-primary" id="newCalculation">Nouveau calcul</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Liste des spécialités avec leurs métadonnées
+        const specialitiesList = [
+            { id: 'medecin', name: 'Médecin généraliste', icon: '🩺', keywords: ['medecin', 'generaliste', 'docteur', 'consultation'] },
+            { id: 'chirurgien', name: 'Chirurgien', icon: '⚕️', keywords: ['chirurgien', 'operation', 'chirurgie'] },
+            { id: 'dermato', name: 'Dermatologue', icon: '🔬', keywords: ['dermato', 'dermatologie', 'peau', 'cutane'] },
+            { id: 'dentiste', name: 'Dentiste', icon: '🦷', keywords: ['dentiste', 'dentaire', 'dent', 'stomato'] },
+            { id: 'cardiologue', name: 'Cardiologue', icon: '❤️', keywords: ['cardio', 'cardiologie', 'coeur', 'cardiaque'] },
+            { id: 'ophtalmologue', name: 'Ophtalmologue', icon: '👁️', keywords: ['ophtalmo', 'ophtalmologie', 'yeux', 'vue', 'vision'] },
+            { id: 'orl', name: 'ORL', icon: '👂', keywords: ['orl', 'oreille', 'nez', 'gorge', 'oto'] },
+            { id: 'gynecologue', name: 'Gynécologue', icon: '👶', keywords: ['gyneco', 'gynecologie', 'femme', 'obstetrique'] },
+            { id: 'pediatre', name: 'Pédiatre', icon: '🧒', keywords: ['pediatre', 'pediatrie', 'enfant', 'bebe', 'nourrisson'] },
+            { id: 'radiologue', name: 'Radiologue', icon: '📡', keywords: ['radio', 'radiologie', 'scanner', 'irm', 'imagerie'] },
+            { id: 'anesthesiste', name: 'Anesthésiste', icon: '💉', keywords: ['anesthesie', 'anesthesiste', 'anesthesiologie'] },
+            { id: 'psychiatre', name: 'Psychiatre', icon: '🧠', keywords: ['psychiatre', 'psychiatrie', 'psycho', 'mental'] },
+            { id: 'pneumologue', name: 'Pneumologue', icon: '🫁', keywords: ['pneumo', 'pneumologie', 'poumon', 'respiratoire'] },
+            { id: 'gastro', name: 'Gastro-entérologue', icon: '🏥', keywords: ['gastro', 'entero', 'digestif', 'intestin', 'estomac'] },
+            { id: 'endocrinologue', name: 'Endocrinologue', icon: '⚗️', keywords: ['endocrino', 'endocrinologie', 'hormone', 'thyroide', 'diabete'] },
+            { id: 'nephrologue', name: 'Néphrologue', icon: '🩺', keywords: ['nephro', 'nephrologie', 'rein', 'renal'] },
+            { id: 'urologue', name: 'Urologue', icon: '🔬', keywords: ['uro', 'urologie', 'urinaire', 'prostate', 'vessie'] },
+            { id: 'rhumatologue', name: 'Rhumatologue', icon: '🦴', keywords: ['rhumato', 'rhumatologie', 'articulation', 'os'] },
+            { id: 'neurologue', name: 'Neurologue', icon: '🧠', keywords: ['neuro', 'neurologie', 'cerveau', 'nerf'] },
+            { id: 'oncologue', name: 'Oncologue', icon: '🎗️', keywords: ['onco', 'oncologie', 'cancer', 'tumeur', 'chimiotherapie'] },
+            { id: 'allergologue', name: 'Allergologue', icon: '🤧', keywords: ['allergo', 'allergologie', 'allergie', 'allergique'] },
+            { id: 'hematologue', name: 'Hématologue', icon: '🩸', keywords: ['hemato', 'hematologie', 'sang', 'sanguin'] },
+            { id: 'orthopediste', name: 'Orthopédiste', icon: '🦵', keywords: ['orthopediste', 'orthopedie', 'os', 'fracture', 'prothese'] },
+            { id: 'kinesitherapeute', name: 'Kinésithérapeute', icon: '💪', keywords: ['kine', 'kinesitherapeute', 'reeducation', 'physio'] },
+            { id: 'osteopathe', name: 'Ostéopathe', icon: '🙌', keywords: ['osteo', 'osteopathe', 'osteopathie', 'manipulation'] },
+            { id: 'sage-femme', name: 'Sage-femme', icon: '🤱', keywords: ['sage', 'femme', 'accouchement', 'grossesse', 'maternite'] },
+            { id: 'podologue', name: 'Podologue', icon: '🦶', keywords: ['podo', 'podologue', 'pied', 'podologie'] },
+            { id: 'orthophoniste', name: 'Orthophoniste', icon: '🗣️', keywords: ['orthophoniste', 'orthophonie', 'langage', 'parole', 'voix'] },
+            { id: 'dieteticien', name: 'Diététicien', icon: '🥗', keywords: ['dieteticien', 'dietetique', 'nutrition', 'nutritionniste', 'regime'] }
+        ];
+
+        // Fonction pour générer les cartes de spécialités
+        function renderSpecialities(filter = '') {
+            const container = document.getElementById('specialitiesContainer');
+            const noResultDiv = document.getElementById('noSpecialityFound');
+            const filterLower = filter.toLowerCase().trim();
+            
+            // Vider complètement le conteneur
+            container.innerHTML = '';
+            
+            let visibleCount = 0;
+            
+            specialitiesList.forEach(spec => {
+                let shouldShow = false;
+                
+                if (filterLower === '') {
+                    // Si pas de filtre, tout afficher
+                    shouldShow = true;
+                } else {
+                    // Recherche intelligente : commence par OU contient le mot
+                    const nameLower = spec.name.toLowerCase();
+                    const normalizedFilter = filterLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const normalizedName = nameLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    
+                    shouldShow = normalizedName.startsWith(normalizedFilter) || 
+                                 normalizedName.includes(' ' + normalizedFilter) ||
+                                 spec.keywords.some(kw => kw.startsWith(normalizedFilter));
+                }
+                
+                // Créer et ajouter la carte seulement si elle doit être visible
+                if (shouldShow) {
+                    const card = document.createElement('div');
+                    card.className = 'radio-card';
+                    card.id = 'spec-card-' + spec.id;
+                    card.innerHTML = `
+                        <input type="radio" name="speciality" id="${spec.id}" value="${spec.id}">
+                        <label for="${spec.id}">
+                            <div class="radio-icon">${spec.icon}</div>
+                            <div class="radio-title">${spec.name}</div>
+                        </label>
+                    `;
+                    container.appendChild(card);
+                    
+                    // Attacher l'événement change directement
+                    const radioInput = card.querySelector('input[type="radio"]');
+                    radioInput.addEventListener('change', (e) => {
+                        formData.speciality = e.target.value;
+                        console.log('Spécialité sélectionnée:', formData.speciality);
+                    });
+                    
+                    visibleCount++;
+                }
+            });
+            
+            // Afficher le message "aucun résultat"
+            if (filterLower !== '' && visibleCount === 0) {
+                noResultDiv.style.display = 'block';
+                container.style.display = 'none';
+            } else {
+                noResultDiv.style.display = 'none';
+                container.style.display = 'grid';
+            }
+        }
+
+        // Initialiser les spécialités au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSpecialities();
+            
+            // Recherche de spécialité
+            const searchInput = document.getElementById('specialitySearch');
+            searchInput.addEventListener('input', (e) => {
+                renderSpecialities(e.target.value);
+            });
+        });
+
+        // Données complètes d'interventions - Plus de 100 codes CCAM
+        const interventionsDB = {
+            medecin: [
+                { code: 'C001', name: 'Consultation de médecine générale', base: 25, description: 'Consultation standard' },
+                { code: 'C002', name: 'Visite à domicile', base: 30, description: 'Déplacement au domicile du patient' },
+                { code: 'C003', name: 'Consultation de suivi chronique', base: 28, description: 'Suivi maladie chronique' },
+                { code: 'C004', name: 'Consultation complexe et longue', base: 46, description: 'Consultation > 30 minutes' },
+                { code: 'C005', name: 'Certificat médical', base: 25, description: 'Établissement certificat' }
+            ],
+            chirurgien: [
+                { code: 'CCAM001', name: 'Appendicectomie sous cœlioscopie', base: 450, description: 'Ablation de l\'appendice' },
+                { code: 'CCAM002', name: 'Cholécystectomie', base: 520, description: 'Ablation de la vésicule biliaire' },
+                { code: 'CCAM003', name: 'Hernie inguinale - cure chirurgicale', base: 380, description: 'Réparation hernie inguinale' },
+                { code: 'CCAM004', name: 'Prothèse totale de hanche', base: 1200, description: 'Remplacement articulaire hanche' },
+                { code: 'CCAM005', name: 'Prothèse totale du genou', base: 1100, description: 'Remplacement articulaire genou' },
+                { code: 'CCAM006', name: 'Thyroïdectomie totale', base: 680, description: 'Ablation totale thyroïde' },
+                { code: 'CCAM007', name: 'Gastrectomie partielle', base: 850, description: 'Résection partielle estomac' },
+                { code: 'CCAM008', name: 'Colectomie', base: 920, description: 'Résection du côlon' },
+                { code: 'CCAM009', name: 'Hémorroïdectomie', base: 245, description: 'Traitement chirurgical hémorroïdes' },
+                { code: 'CCAM010', name: 'Cure de prolapsus rectal', base: 580, description: 'Correction prolapsus' }
+            ],
+            dermato: [
+                { code: 'D001', name: 'Exérèse lésion cutanée bénigne', base: 65, description: 'Retrait grain de beauté' },
+                { code: 'D002', name: 'Cryothérapie verrues (5 lésions max)', base: 40, description: 'Traitement par le froid' },
+                { code: 'D003', name: 'Dermoscopie corps entier', base: 80, description: 'Examen complet grains de beauté' },
+                { code: 'D004', name: 'Biopsie cutanée', base: 55, description: 'Prélèvement analyse' },
+                { code: 'D005', name: 'Exérèse de tumeur cutanée maligne', base: 180, description: 'Ablation mélanome' },
+                { code: 'D006', name: 'Traitement acné par laser', base: 120, description: 'Séance laser acné' },
+                { code: 'D007', name: 'Peeling chimique moyen', base: 150, description: 'Traitement vieillissement cutané' },
+                { code: 'D008', name: 'Injection de toxine botulique', base: 250, description: 'Traitement rides' },
+                { code: 'D009', name: 'Comblement rides par acide hyaluronique', base: 300, description: 'Injection acide hyaluronique' },
+                { code: 'D010', name: 'Ablation kyste sébacé', base: 75, description: 'Exérèse kyste' }
+            ],
+            dentiste: [
+                { code: 'DENT001', name: 'Détartrage complet', base: 28.92, description: 'Nettoyage professionnel' },
+                { code: 'DENT002', name: 'Extraction dentaire simple', base: 33.44, description: 'Extraction sans complication' },
+                { code: 'DENT003', name: 'Couronne céramique', base: 107.50, description: 'Prothèse fixe' },
+                { code: 'DENT004', name: 'Implant dentaire', base: 0, description: 'Non remboursé SS' },
+                { code: 'DENT005', name: 'Dévitalisation molaire', base: 81.94, description: 'Traitement endodontique' },
+                { code: 'DENT006', name: 'Consultation stomatologie', base: 28, description: 'Examen bucco-dentaire' },
+                { code: 'DENT007', name: 'Inlay-onlay céramique', base: 107.50, description: 'Restauration partielle' },
+                { code: 'DENT008', name: 'Bridge 3 éléments', base: 279.50, description: 'Prothèse fixée' },
+                { code: 'DENT009', name: 'Appareil amovible complet', base: 182.75, description: 'Dentier' },
+                { code: 'DENT010', name: 'Extraction dent de sagesse incluse', base: 87.50, description: 'Extraction chirurgicale' },
+                { code: 'DENT011', name: 'Blanchiment dentaire', base: 0, description: 'Esthétique non remboursé' },
+                { code: 'DENT012', name: 'Gouttière orthodontique', base: 193.50, description: 'Traitement orthodontique' }
+            ],
+            cardiologue: [
+                { code: 'CARD001', name: 'Consultation cardiologique', base: 28, description: 'Examen cardiovasculaire' },
+                { code: 'CARD002', name: 'Électrocardiogramme (ECG)', base: 14.26, description: 'Enregistrement activité cardiaque' },
+                { code: 'CARD003', name: 'Échographie cardiaque', base: 59.28, description: 'Échocardiographie' },
+                { code: 'CARD004', name: 'Épreuve d\'effort', base: 71.28, description: 'Test cardiaque sous effort' },
+                { code: 'CARD005', name: 'Holter ECG 24h', base: 61.20, description: 'Enregistrement continu ECG' },
+                { code: 'CARD006', name: 'Coronarographie', base: 235.20, description: 'Imagerie artères coronaires' },
+                { code: 'CARD007', name: 'Pose de pacemaker', base: 720, description: 'Stimulateur cardiaque' },
+                { code: 'CARD008', name: 'Angioplastie coronaire', base: 580, description: 'Dilatation artère coronaire' }
+            ],
+            ophtalmologue: [
+                { code: 'OPH001', name: 'Consultation ophtalmologique', base: 28, description: 'Examen complet vision' },
+                { code: 'OPH002', name: 'Fond d\'œil', base: 36, description: 'Examen rétine' },
+                { code: 'OPH003', name: 'Chirurgie de la cataracte', base: 271.70, description: 'Extraction cristallin' },
+                { code: 'OPH004', name: 'Laser YAG (cataracte secondaire)', base: 88, description: 'Traitement laser' },
+                { code: 'OPH005', name: 'Chirurgie réfractive (LASIK)', base: 0, description: 'Correction myopie - Non remboursé' },
+                { code: 'OPH006', name: 'Injection intravitréenne (DMLA)', base: 120, description: 'Traitement DMLA' },
+                { code: 'OPH007', name: 'Champ visuel automatisé', base: 36.72, description: 'Test vision périphérique' },
+                { code: 'OPH008', name: 'OCT (tomographie cohérence optique)', base: 52, description: 'Imagerie rétinienne' }
+            ],
+            orl: [
+                { code: 'ORL001', name: 'Consultation ORL', base: 28, description: 'Examen ORL complet' },
+                { code: 'ORL002', name: 'Ablation des amygdales (amygdalectomie)', base: 166.40, description: 'Chirurgie amygdales' },
+                { code: 'ORL003', name: 'Adénoïdectomie', base: 120, description: 'Ablation végétations' },
+                { code: 'ORL004', name: 'Paracentèse avec pose d\'aérateur', base: 75.60, description: 'Drainage oreille' },
+                { code: 'ORL005', name: 'Septoplastie', base: 228.80, description: 'Correction cloison nasale' },
+                { code: 'ORL006', name: 'Turbinectomie', base: 145, description: 'Réduction cornets' },
+                { code: 'ORL007', name: 'Polypectomie nasale', base: 95, description: 'Ablation polypes' },
+                { code: 'ORL008', name: 'Audiogramme', base: 36, description: 'Test auditif complet' }
+            ],
+            gynecologue: [
+                { code: 'GYN001', name: 'Consultation gynécologique', base: 28, description: 'Examen gynéco' },
+                { code: 'GYN002', name: 'Frottis cervico-vaginal', base: 15.40, description: 'Dépistage cancer col' },
+                { code: 'GYN003', name: 'Échographie pelvienne', base: 55.30, description: 'Imagerie appareil génital' },
+                { code: 'GYN004', name: 'Pose de DIU (stérilet)', base: 38.40, description: 'Contraception' },
+                { code: 'GYN005', name: 'Hystéroscopie diagnostique', base: 82.56, description: 'Exploration utérine' },
+                { code: 'GYN006', name: 'Conisation', base: 165, description: 'Exérèse col utérin' },
+                { code: 'GYN007', name: 'Hystérectomie totale', base: 458.40, description: 'Ablation utérus' },
+                { code: 'GYN008', name: 'Mammographie bilatérale', base: 49.28, description: 'Dépistage cancer sein' }
+            ],
+            pediatre: [
+                { code: 'PED001', name: 'Consultation pédiatrique', base: 28, description: 'Examen enfant' },
+                { code: 'PED002', name: 'Visite pédiatrique à domicile', base: 35, description: 'Déplacement pédiatre' },
+                { code: 'PED003', name: 'Vaccination nourrisson', base: 6.30, description: 'Acte vaccination' },
+                { code: 'PED004', name: 'Examen de santé obligatoire', base: 30, description: 'Bilan de santé enfant' },
+                { code: 'PED005', name: 'Spirométrie enfant', base: 40, description: 'Test fonction respiratoire' }
+            ],
+            radiologue: [
+                { code: 'RAD001', name: 'Radiographie thorax (2 incidences)', base: 25.27, description: 'Radio poumons' },
+                { code: 'RAD002', name: 'Radiographie membre (2 incidences)', base: 25.27, description: 'Radio os' },
+                { code: 'RAD003', name: 'Scanner thorax sans injection', base: 75, description: 'TDM thorax' },
+                { code: 'RAD004', name: 'Scanner thorax avec injection', base: 90, description: 'TDM thorax injecté' },
+                { code: 'RAD005', name: 'IRM cérébrale', base: 121.50, description: 'Imagerie cerveau' },
+                { code: 'RAD006', name: 'IRM rachis lombaire', base: 115.50, description: 'Imagerie colonne' },
+                { code: 'RAD007', name: 'Échographie abdominale', base: 43.20, description: 'Échographie abdomen' },
+                { code: 'RAD008', name: 'Mammographie + échographie', base: 80, description: 'Dépistage sein complet' },
+                { code: 'RAD009', name: 'Scanner abdomino-pelvien', base: 95, description: 'TDM abdomen bassin' },
+                { code: 'RAD010', name: 'Panoramique dentaire', base: 21.28, description: 'Radio dentaire complète' }
+            ],
+            anesthesiste: [
+                { code: 'ANES001', name: 'Consultation pré-anesthésique', base: 46, description: 'Consultation obligatoire' },
+                { code: 'ANES002', name: 'Anesthésie générale courte', base: 180, description: 'AG < 30min' },
+                { code: 'ANES003', name: 'Anesthésie générale moyenne', base: 280, description: 'AG 30-90min' },
+                { code: 'ANES004', name: 'Anesthésie générale longue', base: 420, description: 'AG > 90min' },
+                { code: 'ANES005', name: 'Péridurale obstétricale', base: 155, description: 'Anesthésie accouchement' },
+                { code: 'ANES006', name: 'Rachianesthésie', base: 145, description: 'Anesthésie rachidienne' }
+            ],
+            psychiatre: [
+                { code: 'PSY001', name: 'Consultation psychiatrique', base: 46.70, description: 'Entretien psychiatrique' },
+                { code: 'PSY002', name: 'Psychothérapie (séance)', base: 39, description: 'Séance psychothérapie' },
+                { code: 'PSY003', name: 'Consultation longue (> 45min)', base: 60, description: 'Entretien approfondi' },
+                { code: 'PSY004', name: 'Bilan psychologique', base: 120, description: 'Tests psychométriques' }
+            ],
+            pneumologue: [
+                { code: 'PNEU001', name: 'Consultation pneumologique', base: 28, description: 'Examen respiratoire' },
+                { code: 'PNEU002', name: 'Spirométrie', base: 37.80, description: 'Test fonction respiratoire' },
+                { code: 'PNEU003', name: 'EFR complète', base: 75, description: 'Épreuves fonctionnelles respiratoires' },
+                { code: 'PNEU004', name: 'Pléthysmographie', base: 65, description: 'Mesure volumes pulmonaires' },
+                { code: 'PNEU005', name: 'Fibroscopie bronchique', base: 98.88, description: 'Endoscopie bronches' },
+                { code: 'PNEU006', name: 'Test de marche 6 minutes', base: 28, description: 'Évaluation capacité effort' }
+            ],
+            gastro: [
+                { code: 'GAST001', name: 'Consultation gastro-entérologie', base: 28, description: 'Examen digestif' },
+                { code: 'GAST002', name: 'Fibroscopie œso-gastro-duodénale', base: 132.96, description: 'Endoscopie digestive haute' },
+                { code: 'GAST003', name: 'Coloscopie totale', base: 186.84, description: 'Endoscopie côlon complet' },
+                { code: 'GAST004', name: 'Rectoscopie', base: 38.40, description: 'Endoscopie rectum' },
+                { code: 'GAST005', name: 'Polypectomie colique', base: 240, description: 'Ablation polype intestinal' },
+                { code: 'GAST006', name: 'Test respiratoire Helicobacter pylori', base: 35, description: 'Dépistage H. pylori' }
+            ],
+            endocrinologue: [
+                { code: 'ENDO001', name: 'Consultation endocrinologie', base: 28, description: 'Examen endocrinien' },
+                { code: 'ENDO002', name: 'Échographie thyroïde', base: 47.88, description: 'Imagerie thyroïde' },
+                { code: 'ENDO003', name: 'Cytoponction thyroïdienne échoguidée', base: 66.75, description: 'Prélèvement thyroïde' },
+                { code: 'ENDO004', name: 'Ostéodensitométrie', base: 39.96, description: 'Mesure densité osseuse' }
+            ],
+            nephrologue: [
+                { code: 'NEPH001', name: 'Consultation néphrologie', base: 28, description: 'Examen rénal' },
+                { code: 'NEPH002', name: 'Échographie rénale et vésicale', base: 48, description: 'Imagerie reins vessie' },
+                { code: 'NEPH003', name: 'Séance d\'hémodialyse', base: 96.70, description: 'Dialyse rénale' },
+                { code: 'NEPH004', name: 'Biopsie rénale échoguidée', base: 180, description: 'Prélèvement rénal' }
+            ],
+            urologue: [
+                { code: 'URO001', name: 'Consultation urologique', base: 28, description: 'Examen urinaire' },
+                { code: 'URO002', name: 'Échographie prostatique', base: 52, description: 'Imagerie prostate' },
+                { code: 'URO003', name: 'Cystoscopie', base: 74.18, description: 'Endoscopie vessie' },
+                { code: 'URO004', name: 'Résection endoscopique prostate', base: 306.72, description: 'RTUP' },
+                { code: 'URO005', name: 'Circoncision', base: 76.80, description: 'Circoncision chirurgicale' },
+                { code: 'URO006', name: 'Lithotripsie (calcul rénal)', base: 240, description: 'Destruction calcul' },
+                { code: 'URO007', name: 'Prostatectomie radicale', base: 800, description: 'Ablation prostate' }
+            ],
+            rhumatologue: [
+                { code: 'RHUM001', name: 'Consultation rhumatologie', base: 28, description: 'Examen articulaire' },
+                { code: 'RHUM002', name: 'Infiltration articulaire', base: 37.80, description: 'Injection intra-articulaire' },
+                { code: 'RHUM003', name: 'Infiltration rachidienne', base: 58.80, description: 'Injection rachis' },
+                { code: 'RHUM004', name: 'Viscosupplémentation genou', base: 70, description: 'Injection acide hyaluronique' },
+                { code: 'RHUM005', name: 'Ponction articulaire évacuatrice', base: 33.60, description: 'Drainage articulation' }
+            ],
+            neurologue: [
+                { code: 'NEUR001', name: 'Consultation neurologique', base: 28, description: 'Examen neurologique' },
+                { code: 'NEUR002', name: 'Électroencéphalogramme (EEG)', base: 81.60, description: 'Enregistrement activité cérébrale' },
+                { code: 'NEUR003', name: 'Électromyogramme (EMG)', base: 98.15, description: 'Étude nerfs et muscles' },
+                { code: 'NEUR004', name: 'Potentiels évoqués', base: 95, description: 'Test conduction nerveuse' },
+                { code: 'NEUR005', name: 'Ponction lombaire', base: 42, description: 'Prélèvement LCR' }
+            ],
+            oncologue: [
+                { code: 'ONCO001', name: 'Consultation oncologie', base: 46, description: 'Consultation cancer' },
+                { code: 'ONCO002', name: 'Chimiothérapie (séance)', base: 90, description: 'Administration chimio' },
+                { code: 'ONCO003', name: 'Radiothérapie (séance)', base: 65, description: 'Séance rayons' },
+                { code: 'ONCO004', name: 'Immunothérapie (perfusion)', base: 120, description: 'Traitement immunologique' }
+            ],
+            allergologue: [
+                { code: 'ALLER001', name: 'Consultation allergologie', base: 28, description: 'Examen allergique' },
+                { code: 'ALLER002', name: 'Tests cutanés allergiques (20 allergènes)', base: 50.40, description: 'Prick tests' },
+                { code: 'ALLER003', name: 'Désensibilisation (injection)', base: 10, description: 'Immunothérapie allergénique' },
+                { code: 'ALLER004', name: 'Test de provocation bronchique', base: 65, description: 'Test hyperréactivité' }
+            ],
+            hematologue: [
+                { code: 'HEMA001', name: 'Consultation hématologie', base: 28, description: 'Examen sanguin' },
+                { code: 'HEMA002', name: 'Myélogramme', base: 65, description: 'Ponction moelle osseuse' },
+                { code: 'HEMA003', name: 'Biopsie ostéo-médullaire', base: 85, description: 'Prélèvement moelle' }
+            ],
+            orthopediste: [
+                { code: 'ORTH001', name: 'Consultation orthopédie', base: 28, description: 'Examen ostéo-articulaire' },
+                { code: 'ORTH002', name: 'Arthroscopie du genou', base: 265.44, description: 'Endoscopie articulaire' },
+                { code: 'ORTH003', name: 'Ligamentoplastie LCA', base: 550, description: 'Reconstruction ligament croisé' },
+                { code: 'ORTH004', name: 'Méniscectomie', base: 280, description: 'Ablation ménisque' },
+                { code: 'ORTH005', name: 'Ostéosynthèse fracture', base: 420, description: 'Réparation fracture' },
+                { code: 'ORTH006', name: 'Prothèse d\'épaule', base: 980, description: 'Remplacement épaule' },
+                { code: 'ORTH007', name: 'Hallux valgus (chirurgie)', base: 280, description: 'Correction oignon' },
+                { code: 'ORTH008', name: 'Canal carpien (libération)', base: 180, description: 'Décompression nerf médian' }
+            ],
+            kinesitherapeute: [
+                { code: 'KINE001', name: 'Séance de rééducation (membre)', base: 16.13, description: 'Kinésithérapie membre' },
+                { code: 'KINE002', name: 'Séance de rééducation (rachis)', base: 19.35, description: 'Kinésithérapie dos' },
+                { code: 'KINE003', name: 'Massage bien-être', base: 0, description: 'Non remboursé' },
+                { code: 'KINE004', name: 'Drainage lymphatique', base: 16.13, description: 'Technique drainage' },
+                { code: 'KINE005', name: 'Rééducation post-opératoire', base: 20, description: 'Rééducation chirurgie' }
+            ],
+            osteopathe: [
+                { code: 'OSTEO001', name: 'Consultation ostéopathie', base: 0, description: 'Non remboursé SS' },
+                { code: 'OSTEO002', name: 'Séance ostéopathie', base: 0, description: 'Manipulation ostéopathique - Non remboursé' }
+            ],
+            'sage-femme': [
+                { code: 'SF001', name: 'Consultation sage-femme', base: 28, description: 'Suivi grossesse' },
+                { code: 'SF002', name: 'Préparation à l\'accouchement (séance)', base: 42, description: 'Cours préparation' },
+                { code: 'SF003', name: 'Échographie obstétricale', base: 81.92, description: 'Echo grossesse' },
+                { code: 'SF004', name: 'Rééducation périnéale', base: 25, description: 'Rééducation post-partum' }
+            ],
+            podologue: [
+                { code: 'PODO001', name: 'Consultation podologie', base: 0, description: 'Non remboursé sauf diabète' },
+                { code: 'PODO002', name: 'Soins de pédicurie (diabète)', base: 27, description: 'Soins pieds diabétiques' },
+                { code: 'PODO003', name: 'Confection semelles orthopédiques', base: 28, description: 'Semelles sur ordonnance' }
+            ],
+            orthophoniste: [
+                { code: 'ORTHO001', name: 'Bilan orthophonique', base: 60, description: 'Évaluation troubles langage' },
+                { code: 'ORTHO002', name: 'Séance d\'orthophonie', base: 30, description: 'Rééducation langage' },
+                { code: 'ORTHO003', name: 'Rééducation déglutition', base: 28, description: 'Troubles déglutition' }
+            ],
+            dieteticien: [
+                { code: 'DIET001', name: 'Consultation diététique', base: 0, description: 'Non remboursé SS' },
+                { code: 'DIET002', name: 'Bilan nutritionnel', base: 0, description: 'Évaluation nutrition - Non remboursé' }
+            ]
+        };
+
+        // État de l'application
+        let currentStep = 1;
+        let formData = {
+            speciality: '',
+            interventions: [], // Tableau pour stocker plusieurs interventions
+            patientName: '',
+            socialSecurity: '',
+            regime: '',
+            mutuelle: '',
+            mutuelleRate: 0
+        };
+
+        // Fonctions globales pour la gestion des interventions (définies AVANT le DOM)
+        window.removeIntervention = function(index) {
+            console.log('Suppression intervention index:', index);
+            formData.interventions.splice(index, 1);
+            updateInterventionsList();
+        };
+
+        window.editIntervention = function(index) {
+            const intervention = formData.interventions[index];
+            
+            // Créer un formulaire d'édition inline
+            const card = document.querySelectorAll('.intervention-card')[index];
+            const actionsDiv = card.querySelector('.intervention-actions');
+            
+            // Remplacer par un formulaire d'édition
+            actionsDiv.innerHTML = `
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <input type="number" id="editFees${index}" class="form-input" value="${intervention.fees}" step="0.01" style="margin: 0;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn-small" onclick="window.cancelEdit(${index})" style="background: var(--text-light); color: white; flex: 1;">Annuler</button>
+                        <button class="btn-small" onclick="window.saveEdit(${index})" style="background: var(--success); color: white; flex: 1;">Valider</button>
+                    </div>
+                </div>
+            `;
+            
+            // Focus sur l'input
+            document.getElementById('editFees' + index).focus();
+        };
+
+        window.cancelEdit = function(index) {
+            // Régénérer la liste au lieu de restaurer l'HTML
+            updateInterventionsList();
+        };
+
+        window.saveEdit = function(index) {
+            const newFees = parseFloat(document.getElementById('editFees' + index).value);
+            if (!isNaN(newFees) && newFees > 0) {
+                formData.interventions[index].fees = newFees;
+                updateInterventionsList();
+            } else {
+                alert('Veuillez entrer un montant valide');
+            }
+        };
+
+        // Navigation
+        function updateProgress() {
+            const progress = ((currentStep - 1) / 3) * 100;
+            document.getElementById('progressLine').style.width = progress + '%';
+            
+            document.querySelectorAll('.step').forEach((step, index) => {
+                const stepNum = index + 1;
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum === currentStep) {
+                    step.classList.add('active');
+                } else if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                }
+            });
+
+            document.querySelectorAll('.form-step').forEach((step, index) => {
+                step.classList.remove('active');
+                if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function goToStep(step) {
+            currentStep = step;
+            updateProgress();
+        }
+
+        // Step 1: Specialité
+        // Les événements sont maintenant attachés directement dans renderSpecialities()
+
+        document.getElementById('nextStep1').addEventListener('click', () => {
+            if (!formData.speciality) {
+                alert('Veuillez sélectionner votre spécialité');
+                return;
+            }
+            goToStep(2);
+        });
+
+        // Step 2: Interventions multiples
+        const searchInput = document.getElementById('interventionSearch');
+        const searchResults = document.getElementById('searchResults');
+        const selectedInterventionsDiv = document.getElementById('selectedInterventions');
+        const interventionsListDiv = document.getElementById('interventionsList');
+
+        function updateInterventionsList() {
+            if (formData.interventions.length === 0) {
+                interventionsListDiv.classList.remove('has-interventions');
+            } else {
+                interventionsListDiv.classList.add('has-interventions');
+                
+                selectedInterventionsDiv.innerHTML = formData.interventions.map((intervention, index) => `
+                    <div class="intervention-card">
+                        <div class="intervention-details">
+                            <span class="intervention-code">${intervention.code}</span>
+                            <div class="intervention-name">${intervention.name}</div>
+                            <div class="intervention-description">${intervention.description}</div>
+                            <div class="intervention-pricing">
+                                <div class="pricing-item">
+                                    <span class="pricing-label">Base Sécu</span>
+                                    <span class="pricing-value">${intervention.base.toFixed(2)} €</span>
+                                </div>
+                                <div class="pricing-item">
+                                    <span class="pricing-label">Honoraires pratiqués</span>
+                                    <span class="pricing-value">${intervention.fees.toFixed(2)} €</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="intervention-actions">
+                            <button class="btn-small btn-edit" onclick="window.editIntervention(${index})">Modifier</button>
+                            <button class="btn-small btn-remove" onclick="window.removeIntervention(${index})">Supprimer</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (query.length < 2) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            const interventions = interventionsDB[formData.speciality] || [];
+            const filtered = interventions.filter(int => 
+                int.code.toLowerCase().includes(query) || 
+                int.name.toLowerCase().includes(query)
+            );
+
+            if (filtered.length > 0) {
+                searchResults.innerHTML = filtered.map(int => `
+                    <div class="search-result-item" data-code="${int.code}">
+                        <div class="result-code">${int.code}</div>
+                        <div class="result-name">${int.name}</div>
+                        <div class="result-price">Base SS: ${int.base.toFixed(2)} €</div>
+                    </div>
+                `).join('');
+                searchResults.classList.add('active');
+            } else {
+                searchResults.innerHTML = '<div class="search-result-item">Aucun résultat trouvé</div>';
+                searchResults.classList.add('active');
+            }
+        });
+
+        // Variable temporaire pour stocker l'intervention sélectionnée
+        let tempSelectedIntervention = null;
+
+        searchResults.addEventListener('click', (e) => {
+            const item = e.target.closest('.search-result-item');
+            if (!item || !item.dataset.code) return;
+
+            const interventions = interventionsDB[formData.speciality] || [];
+            const selected = interventions.find(int => int.code === item.dataset.code);
+            
+            if (selected) {
+                // Vérifier si déjà ajoutée
+                const alreadyAdded = formData.interventions.find(i => i.code === selected.code);
+                if (alreadyAdded) {
+                    alert('Cette intervention a déjà été ajoutée');
+                    return;
+                }
+                
+                // Afficher le formulaire d'ajout
+                tempSelectedIntervention = selected;
+                const addForm = document.getElementById('addInterventionForm');
+                const infoDiv = document.getElementById('selectedInterventionInfo');
+                const feesInput = document.getElementById('interventionFees');
+                
+                infoDiv.innerHTML = `
+                    <div style="display: flex; align-items: start; gap: 0.75rem;">
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: var(--primary); color: white; border-radius: 6px; font-size: 0.85rem; font-weight: 700;">${selected.code}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--primary-dark); margin-bottom: 0.25rem;">${selected.name}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-medium);">${selected.description}</div>
+                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-dark);"><strong>Base Sécurité Sociale:</strong> ${selected.base.toFixed(2)} €</div>
+                        </div>
+                    </div>
+                `;
+                
+                feesInput.value = selected.base.toFixed(2);
+                addForm.style.display = 'block';
+                searchResults.classList.remove('active');
+                searchInput.value = '';
+                
+                // Scroll vers le formulaire
+                addForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                setTimeout(() => feesInput.focus(), 300);
+            }
+        });
+
+        document.getElementById('cancelAddIntervention').addEventListener('click', () => {
+            document.getElementById('addInterventionForm').style.display = 'none';
+            tempSelectedIntervention = null;
+        });
+
+        document.getElementById('confirmAddIntervention').addEventListener('click', () => {
+            const fees = parseFloat(document.getElementById('interventionFees').value);
+            
+            if (!tempSelectedIntervention) return;
+            
+            if (isNaN(fees) || fees <= 0) {
+                alert('Veuillez entrer un montant valide');
+                return;
+            }
+            
+            formData.interventions.push({
+                ...tempSelectedIntervention,
+                fees: fees
+            });
+            
+            updateInterventionsList();
+            document.getElementById('addInterventionForm').style.display = 'none';
+            tempSelectedIntervention = null;
+        });
+
+        document.getElementById('prevStep2').addEventListener('click', () => goToStep(1));
+        document.getElementById('nextStep2').addEventListener('click', () => {
+            if (formData.interventions.length === 0) {
+                alert('Veuillez ajouter au moins une intervention');
+                return;
+            }
+            goToStep(3);
+        });
+
+        // Step 3: Patient
+        // Liste des mutuelles
+        const mutuellesList = [
+            { value: '', name: 'Sélectionnez une mutuelle', rate: 0 },
+            { value: 'none', name: 'Aucune mutuelle', rate: 0 },
+            { value: 'harmonie', name: 'Harmonie Mutuelle', rate: 100 },
+            { value: 'mgen', name: 'MGEN', rate: 100 },
+            { value: 'mfif', name: 'MFIF', rate: 100 },
+            { value: 'malakoff', name: 'Malakoff Humanis', rate: 95 },
+            { value: 'mutex', name: 'Mutex', rate: 95 },
+            { value: 'smeno', name: 'SMENO', rate: 90 },
+            { value: 'lmde', name: 'LMDE', rate: 90 },
+            { value: 'smerep', name: 'SMEREP', rate: 90 },
+            { value: 'mnh', name: 'MNH', rate: 90 },
+            { value: 'axa', name: 'AXA', rate: 85 },
+            { value: 'allianz', name: 'Allianz', rate: 85 },
+            { value: 'swiss-life', name: 'Swiss Life', rate: 85 },
+            { value: 'mnt', name: 'MNT', rate: 85 },
+            { value: 'mutuelle-bleue', name: 'Mutuelle Bleue', rate: 85 },
+            { value: 'maif', name: 'MAIF', rate: 80 },
+            { value: 'generali', name: 'Generali', rate: 80 },
+            { value: 'groupama', name: 'Groupama', rate: 80 },
+            { value: 'matmut', name: 'Matmut', rate: 80 },
+            { value: 'credit-agricole', name: 'Crédit Agricole Assurances', rate: 80 },
+            { value: 'mma-pros', name: 'MMA Pros', rate: 80 },
+            { value: 'radiance', name: 'Radiance Mutuelle', rate: 80 },
+            { value: 'macif', name: 'MACIF', rate: 75 },
+            { value: 'maaf', name: 'MAAF', rate: 75 },
+            { value: 'mma', name: 'MMA', rate: 75 },
+            { value: 'ag2r', name: 'AG2R La Mondiale', rate: 75 },
+            { value: 'msa', name: 'MSA', rate: 75 },
+            { value: 'solyia', name: 'Solyia', rate: 75 },
+            { value: 'april', name: 'April', rate: 70 },
+            { value: 'acs', name: 'ACS', rate: 70 },
+            { value: 'eovi-mcd', name: 'Eovi Mcd', rate: 70 },
+            { value: 'mgc', name: 'MGC', rate: 70 },
+            { value: 'viasante', name: 'ViaSanté', rate: 70 },
+            { value: 'mpcl', name: 'MPCL', rate: 65 },
+            { value: 'autre', name: 'Autre mutuelle', rate: 0 }
+        ];
+
+        // Nouvelle fonction pour gérer l'autocomplete des mutuelles
+        const mutuelleSearchInput = document.getElementById('mutuelleSearch');
+        const mutuelleDropdown = document.getElementById('mutuelleDropdown');
+        const mutuelleValueInput = document.getElementById('mutuelleValue');
+        const selectedMutuelleDisplay = document.getElementById('selectedMutuelleDisplay');
+
+        // Afficher/masquer le dropdown
+        mutuelleSearchInput.addEventListener('focus', () => {
+            renderMutuelleDropdown(mutuelleSearchInput.value);
+            mutuelleDropdown.style.display = 'block';
+        });
+
+        mutuelleSearchInput.addEventListener('input', (e) => {
+            renderMutuelleDropdown(e.target.value);
+            mutuelleDropdown.style.display = 'block';
+        });
+
+        // Fermer le dropdown si on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#mutuelleSearch') && !e.target.closest('#mutuelleDropdown')) {
+                mutuelleDropdown.style.display = 'none';
+            }
+        });
+
+        function renderMutuelleDropdown(filter = '') {
+            const filterLower = filter.toLowerCase().trim();
+            
+            const filtered = mutuellesList.filter(mut => {
+                if (mut.value === '') return false; // Ne pas afficher "Sélectionnez une mutuelle"
+                return !filterLower || mut.name.toLowerCase().includes(filterLower);
+            });
+
+            if (filtered.length === 0) {
+                mutuelleDropdown.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-light);">Aucune mutuelle trouvée</div>';
+                return;
+            }
+
+            mutuelleDropdown.innerHTML = filtered.map(mut => `
+                <div class="mutuelle-option" data-value="${mut.value}" data-rate="${mut.rate}" data-name="${mut.name}" style="padding: 0.85rem 1.25rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.2s;">
+                    <div style="font-weight: 600; color: var(--primary-dark);">${mut.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-medium);">Taux: ${mut.rate}%</div>
+                </div>
+            `).join('');
+
+            // Ajouter les événements de hover
+            document.querySelectorAll('.mutuelle-option').forEach(option => {
+                option.addEventListener('mouseenter', (e) => {
+                    e.target.style.background = 'var(--bg-main)';
+                });
+                option.addEventListener('mouseleave', (e) => {
+                    e.target.style.background = 'white';
+                });
+                option.addEventListener('click', () => {
+                    selectMutuelle(option.dataset.value, option.dataset.name, parseInt(option.dataset.rate));
+                });
+            });
+        }
+
+        function selectMutuelle(value, name, rate) {
+            formData.mutuelle = value;
+            formData.mutuelleRate = rate;
+            
+            mutuelleValueInput.value = value;
+            mutuelleSearchInput.value = name;
+            document.getElementById('mutuelleRate').value = rate;
+            
+            // Afficher la sélection
+            selectedMutuelleDisplay.innerHTML = `✓ ${name} (${rate}%)`;
+            selectedMutuelleDisplay.style.display = 'block';
+            
+            // Fermer le dropdown
+            mutuelleDropdown.style.display = 'none';
+        }
+
+        document.getElementById('patientName').addEventListener('input', (e) => {
+            formData.patientName = e.target.value;
+        });
+
+        document.getElementById('socialSecurity').addEventListener('input', (e) => {
+            formData.socialSecurity = e.target.value;
+        });
+
+        document.getElementById('regime').addEventListener('change', (e) => {
+            formData.regime = e.target.value;
+        });
+
+        document.getElementById('mutuelleRate').addEventListener('input', (e) => {
+            formData.mutuelleRate = parseFloat(e.target.value) || 0;
+        });
+
+        document.getElementById('prevStep3').addEventListener('click', () => goToStep(2));
+        document.getElementById('nextStep3').addEventListener('click', () => {
+            if (!formData.patientName || !formData.regime) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+            calculateAndShowResults();
+            goToStep(4);
+        });
+
+        // Step 4: Calcul et résultats pour interventions multiples
+        function calculateAndShowResults() {
+            // Taux de remboursement SS selon régime
+            const regimeRates = {
+                'general': 0.70,
+                'alsace': 0.90,
+                'mutualite': 0.70,
+                'independant': 0.70
+            };
+            
+            const regimeRate = regimeRates[formData.regime] || 0.70;
+            
+            // Calculs pour toutes les interventions
+            let totalBase = 0;
+            let totalSecuRemb = 0;
+            let totalMutuelleRemb = 0;
+            let totalFees = 0;
+            let totalDepassement = 0;
+            
+            formData.interventions.forEach(intervention => {
+                const baseTarif = intervention.base;
+                const fees = intervention.fees;
+                
+                const secuRemb = baseTarif * regimeRate;
+                const ticketModerateur = baseTarif - secuRemb;
+                const mutuelleRemb = ticketModerateur * (formData.mutuelleRate / 100);
+                const depassement = Math.max(0, fees - baseTarif);
+                
+                totalBase += baseTarif;
+                totalSecuRemb += secuRemb;
+                totalMutuelleRemb += mutuelleRemb;
+                totalFees += fees;
+                totalDepassement += depassement;
+            });
+            
+            const totalResteACharge = totalFees - totalSecuRemb - totalMutuelleRemb;
+
+            // Affichage récapitulatif
+            document.getElementById('summaryPatient').textContent = formData.patientName;
+            document.getElementById('summaryIntervention').textContent = formData.interventions.length + ' intervention(s)';
+            document.getElementById('summaryFees').textContent = totalFees.toFixed(2) + ' €';
+
+            // Affichage détails
+            document.getElementById('baseTarif').textContent = totalBase.toFixed(2) + ' €';
+            document.getElementById('secuRemboursement').textContent = totalSecuRemb.toFixed(2) + ' €';
+            document.getElementById('mutuelleRemboursement').textContent = totalMutuelleRemb.toFixed(2) + ' €';
+            document.getElementById('depassement').textContent = totalDepassement.toFixed(2) + ' €';
+            document.getElementById('resteACharge').textContent = totalResteACharge.toFixed(2) + ' €';
+        }
+
+        document.getElementById('prevStep4').addEventListener('click', () => goToStep(3));
+        document.getElementById('generateQuote').addEventListener('click', () => {
+            generateModernQuote();
+        });
+        
+        function generateModernQuote() {
+            const today = new Date().toLocaleDateString('fr-FR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Calculer les totaux
+            let totalBase = 0;
+            let totalSecuRemb = 0;
+            let totalMutuelleRemb = 0;
+            let totalFees = 0;
+            
+            const regimeRates = {
+                'general': 0.70,
+                'alsace': 0.90,
+                'mutualite': 0.70,
+                'independant': 0.70
+            };
+            
+            const regimeRate = regimeRates[formData.regime] || 0.70;
+            
+            formData.interventions.forEach(intervention => {
+                const baseTarif = intervention.base;
+                const fees = intervention.fees;
+                
+                const secuRemb = baseTarif * regimeRate;
+                const ticketModerateur = baseTarif - secuRemb;
+                const mutuelleRemb = ticketModerateur * (formData.mutuelleRate / 100);
+                
+                totalBase += baseTarif;
+                totalSecuRemb += secuRemb;
+                totalMutuelleRemb += mutuelleRemb;
+                totalFees += fees;
+            });
+            
+            const totalResteACharge = totalFees - totalSecuRemb - totalMutuelleRemb;
+            
+            // Créer le HTML du devis
+            const quoteHTML = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devis Médical - ${formData.patientName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lato', sans-serif;
+            background: linear-gradient(135deg, #f8f9fb 0%, #e8eef3 100%);
+            padding: 2rem;
+            color: #2d3748;
+        }
+        
+        .quote-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(26, 95, 122, 0.15);
+        }
+        
+        .quote-header {
+            background: linear-gradient(135deg, #0d3d52 0%, #1a5f7a 100%);
+            color: white;
+            padding: 3rem 3rem 2rem 3rem;
+        }
+        
+        .quote-logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .quote-logo span {
+            color: #e8a87c;
+            font-style: italic;
+        }
+        
+        .quote-title {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .quote-info {
+            background: linear-gradient(135deg, rgba(232, 168, 124, 0.1) 0%, rgba(232, 168, 124, 0.05) 100%);
+            padding: 2rem 3rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 1.05rem;
+            color: #0d3d52;
+            font-weight: 600;
+        }
+        
+        .quote-content {
+            padding: 2.5rem 3rem;
+        }
+        
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            color: #0d3d52;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e8a87c;
+        }
+        
+        .interventions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        .interventions-table th {
+            background: #f8f9fb;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: #0d3d52;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #1a5f7a;
+        }
+        
+        .interventions-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .interventions-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .code-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #1a5f7a;
+            color: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .intervention-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+        
+        .intervention-desc {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+        
+        .price {
+            text-align: right;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #0d3d52 0%, #1a5f7a 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            color: white;
+            margin-top: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-top: 1.5rem;
+            margin-top: 0.75rem;
+            border-top: 2px solid #e8a87c;
+        }
+        
+        .summary-label {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+        
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .summary-total .summary-label {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .summary-total .summary-value {
+            font-size: 2rem;
+            color: #e8a87c;
+        }
+        
+        .quote-footer {
+            background: #f8f9fb;
+            padding: 2rem 3rem;
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-note {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .quote-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quote-container">
+        <div class="quote-header">
+            <div class="quote-logo">MediCost <span>Pro</span></div>
+            <div class="quote-title">Devis Médical Détaillé</div>
+        </div>
+        
+        <div class="quote-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Patient</span>
+                    <span class="info-value">${formData.patientName}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date</span>
+                    <span class="info-value">${today}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Régime</span>
+                    <span class="info-value">${formData.regime}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Mutuelle</span>
+                    <span class="info-value">${formData.mutuelle || 'Non renseignée'} (${formData.mutuelleRate}%)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quote-content">
+            <h2 class="section-title">Interventions prévues</h2>
+            
+            <table class="interventions-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Intervention</th>
+                        <th style="text-align: right;">Base SS</th>
+                        <th style="text-align: right;">Honoraires</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${formData.interventions.map(int => `
+                        <tr>
+                            <td><span class="code-badge">${int.code}</span></td>
+                            <td>
+                                <div class="intervention-name">${int.name}</div>
+                                <div class="intervention-desc">${int.description}</div>
+                            </td>
+                            <td class="price">${int.base.toFixed(2)} €</td>
+                            <td class="price">${int.fees.toFixed(2)} €</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span class="summary-label">Total Base Sécurité Sociale</span>
+                    <span class="summary-value">${totalBase.toFixed(2)} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Remboursement Sécurité Sociale</span>
+                    <span class="summary-value">${totalSecuRemb.toFixed(2)} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Remboursement Mutuelle</span>
+                    <span class="summary-value">${totalMutuelleRemb.toFixed(2)} €</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Honoraires</span>
+                    <span class="summary-value">${totalFees.toFixed(2)} €</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span class="summary-label">Reste à charge patient</span>
+                    <span class="summary-value">${totalResteACharge.toFixed(2)} €</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quote-footer">
+            <strong>MediCost Pro</strong> - Calculateur de Reste à Charge
+            <div class="footer-note">
+                Ce devis est donné à titre indicatif. Les tarifs de remboursement peuvent varier selon votre situation.
+                Pour toute question, n'hésitez pas à contacter votre praticien ou votre mutuelle.
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <button onclick="window.print()" style="padding: 1rem 2rem; background: linear-gradient(135deg, #1a5f7a 0%, #2c7a9b 100%); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(26, 95, 122, 0.3);">
+            🖨️ Imprimer le devis
+        </button>
+        <button onclick="window.close()" style="padding: 1rem 2rem; background: #e2e8f0; color: #2d3748; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-left: 1rem;">
+            Fermer
+        </button>
+    </div>
+</body>
+</html>
+            `;
+            
+            // Ouvrir dans une nouvelle fenêtre
+            const quoteWindow = window.open('', '_blank');
+            quoteWindow.document.write(quoteHTML);
+            quoteWindow.document.close();
+        };
+        document.getElementById('newCalculation').addEventListener('click', () => {
+            // Reset form
+            formData = {
+                speciality: '',
+                interventions: [],
+                patientName: '',
+                socialSecurity: '',
+                regime: '',
+                mutuelle: '',
+                mutuelleRate: 0
+            };
+            
+            document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = '');
+            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            updateInterventionsList();
+            
+            goToStep(1);
+        });
+
+        // Initialize
+        updateProgress();
+        updateInterventionsList();
+    </script>
+</body>
+</html>
